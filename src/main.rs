@@ -1,29 +1,33 @@
 use std::collections::HashMap;
 use serde_json::Value;
 
-async fn request() -> Result<(), reqwest::Error> {
-    let url = "http://localhost:3000/agvd/variant";
+async fn login(){
+    let endpoint = "login".to_string();
     let mut map = HashMap::new();
-    map.insert("user","wilson");
+    map.insert("user", "wilson");
     map.insert("password", "tatqd3uX@");
+    let handle = request(map, endpoint);
+    println!("{:#?}", handle.await)
 
+}
+
+async fn request(params: HashMap<&str,&str>, endpoint: String) -> Result<Value, reqwest::Error> {
+    let url = format!("http://localhost:3000/agvd/{}", endpoint);
     let client = reqwest::Client::builder()
         .danger_accept_invalid_certs(true)
         .build()
         .unwrap();
     let res = client.post(url)
-        .json(&map)
+        .json(&params)
         .send()
         .await?;
     let token = res.text().await?;
     let val : Value = serde_json::from_str(&token).unwrap();
-    println!("{:#?}",val[0]);
-
-    Ok(())
+    Ok(val)
 }
 
 
 #[tokio::main]
 async fn main() {
-    request().await.unwrap();
+    login().await
 }
