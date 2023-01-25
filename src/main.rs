@@ -23,6 +23,15 @@ async fn signup(){
     println!("{:#?}", handle.await)
 }
 
+async fn query() {
+    let endpoint = "variant".to_string();
+    let mut map = HashMap::new();
+    map.insert("user", "wilson");
+    map.insert("password", "tatqd3uX@");
+    let handle = request(map, endpoint);
+    println!("{:#?}", handle.await)
+}
+
 async fn request(params: HashMap<&str,&str>, endpoint: String) -> Result<Value, reqwest::Error> {
     let url = format!("http://localhost:3000/agvd/{}", endpoint);
     let client = reqwest::Client::builder()
@@ -42,5 +51,6 @@ async fn request(params: HashMap<&str,&str>, endpoint: String) -> Result<Value, 
 #[tokio::main]
 async fn main() {
     // login().await;
-    signup().await;
+    // signup().await;
+    query().await;
 }
