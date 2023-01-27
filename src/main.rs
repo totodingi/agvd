@@ -23,7 +23,7 @@ enum Commands {
         user: String,
         /// User's Password
         #[arg(short,long)]
-        password: Option<String>,
+        password: String,
     },
     /// User Signup
     Signup {
@@ -47,16 +47,16 @@ enum Commands {
     Query {
         /// User access token
         #[arg(short,long)]
-        token: String,
+        token: Option<String>,
         /// User ID
         #[arg(short,long)]
-        user: String,
+        user: Option<String>,
         /// User Password
         #[arg(short,long)]
-        password: String,
+        password: Option<String>,
         /// Variant ID
         #[arg(short,long)]
-        id: String,
+        id: Option<String>,
     }
 }
 
@@ -67,39 +67,35 @@ struct Login {
     password: String,
 }
 
+fn mapper(params: Vec<String>) -> HashMap<String, String>{
+    let mut args = HashMap::new();
+    for arg in params.iter(){
+        let split = arg.split_whitespace().collect::<Vec<_>>();
+        args.insert(split[0].to_string(),split[1].to_string());
+    }
+    args
+}
 
-async fn login(){
+async fn login(params: Vec<String>){
     let endpoint = "login".to_string();
-    let mut map = HashMap::new();
-    map.insert("user", "wilson");
-    map.insert("password", "tatqd3uX@");
-    let handle = request(map, endpoint);
+    let handle = request(mapper(params), endpoint);
     println!("{:#?}", handle.await)
 
 }
 
-async fn signup(){
+async fn signup(params: Vec<String>){
     let endpoint = "signup".to_string();
-    let mut map = HashMap::new();
-    map.insert("id", "dingi");
-    map.insert("name", "toto dingi");
-    map.insert("email","dingi@email.com");
-    map.insert("password", "tatqd3uX@");
-    map.insert("organization", "ICIPE");
-    let handle = request(map, endpoint);
+    let handle = request(mapper(params), endpoint);
     println!("{:#?}", handle.await)
 }
 
-async fn query() {
+async fn query(params: Vec<String>) {
     let endpoint = "variant".to_string();
-    let mut map = HashMap::new();
-    map.insert("user", "wilson");
-    map.insert("password", "tatqd3uX@");
-    let handle = request(map, endpoint);
+    let handle = request(mapper(params), endpoint);
     println!("{:#?}", handle.await)
 }
 
-async fn request(params: HashMap<&str,&str>, endpoint: String) -> Result<Value, reqwest::Error> {
+async fn request(params: HashMap<String,String>, endpoint: String) -> Result<Value, reqwest::Error> {
     let url = format!("http://localhost:3000/agvd/{}", endpoint);
     let client = reqwest::Client::builder()
         .danger_accept_invalid_certs(true)
@@ -114,18 +110,19 @@ async fn request(params: HashMap<&str,&str>, endpoint: String) -> Result<Value, 
     Ok(val)
 }
 
-fn reader(arg: CommandReader){
-    // let args : Vec<String> = env::args().collect();
-    // arg.iter().map(|x| println!("ARGS {}", x)).collect()
+async fn reader(arg: CommandReader){
     match arg.command {
         Commands::Login {user, password} => {
-            println!("User wants to Login {} {}", user, password.unwrap_or("".to_string()))
+            let params = vec![format!("user {}",user),format!("password {}",password)];
+            login(params).await;
         },
         Commands::Signup {id, email, name, organization,password} => {
-            println!("User wants to Signup")
+            let params = vec![id,email,organization,name,password];
+            signup(params).await;
         },
         Commands::Query {token, user, password, id} => {
-            println!("User wants to query variant")
+            let params = vec![token,user,password,id].iter().map(|x| x.clone().unwrap_or("".to_string())).collect();
+            query(params).await;
         }
     }
 
@@ -139,5 +136,5 @@ async fn main() {
     // let args : Vec<String> = env::args().collect();
     let args = CommandReader::parse();
     // println!("{:#?}", args);
-    reader(args)
+    reader(args).await;
 }
