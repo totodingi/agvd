@@ -71,7 +71,9 @@ fn mapper(params: Vec<String>) -> HashMap<String, String>{
     let mut args = HashMap::new();
     for arg in params.iter(){
         let split = arg.split_whitespace().collect::<Vec<_>>();
-        args.insert(split[0].to_string(),split[1].to_string());
+        if split.len() > 1 {
+            args.insert(split[0].to_string(),split[1].to_string());
+        }
     }
     args
 }
@@ -126,8 +128,11 @@ async fn reader(arg: CommandReader){
             signup(params).await;
         },
         Commands::Query {token, user, password, id} => {
-            let params = vec![token,user,password,id]
-                .iter().map(|x| x.clone().unwrap_or("".to_string())).collect();
+            let params = vec![
+                format!("token {}",token.unwrap_or("".to_string())),
+                format!("user {}",user.unwrap_or("".to_string())),
+                format!("password {}",password.unwrap_or("".to_string())),
+                format!("id {}",id.unwrap_or("".to_string()))];
             query(params).await;
         }
     }
