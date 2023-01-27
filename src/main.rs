@@ -117,11 +117,17 @@ async fn reader(arg: CommandReader){
             login(params).await;
         },
         Commands::Signup {id, email, name, organization,password} => {
-            let params = vec![id,email,organization,name,password];
+            let params = vec![
+                format!("id {}",id),
+                format!("email {}",email),
+                format!("organization {}",organization),
+                format!("name {}",name),
+                format!("password {}",password)];
             signup(params).await;
         },
         Commands::Query {token, user, password, id} => {
-            let params = vec![token,user,password,id].iter().map(|x| x.clone().unwrap_or("".to_string())).collect();
+            let params = vec![token,user,password,id]
+                .iter().map(|x| x.clone().unwrap_or("".to_string())).collect();
             query(params).await;
         }
     }
