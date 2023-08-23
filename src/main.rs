@@ -20,7 +20,7 @@ enum Commands {
     Login {
         /// User's unique ID
         #[arg(short,long)]
-        user: String,
+        user_id: String,
         /// User's Password
         #[arg(short,long)]
         password: String,
@@ -48,12 +48,6 @@ enum Commands {
         /// User access token
         #[arg(short,long)]
         token: Option<String>,
-        /// User ID
-        #[arg(short,long)]
-        user: Option<String>,
-        /// User Password
-        #[arg(short,long)]
-        password: Option<String>,
         /// Variant ID
         #[arg(short,long)]
         id: Option<String>,
@@ -98,7 +92,7 @@ async fn query(params: Vec<String>) {
 }
 
 async fn request(params: HashMap<String,String>, endpoint: String) -> Result<Value, reqwest::Error> {
-    let url = format!("http://localhost:3000/agvd/{}", endpoint);
+    let url = format!("https://agvd-rps.h3abionet.org/api/{}", endpoint);
     let client = reqwest::Client::builder()
         .danger_accept_invalid_certs(true)
         .build()
@@ -130,8 +124,6 @@ async fn reader(arg: CommandReader){
         Commands::Query {token, user, password, id} => {
             let params = vec![
                 format!("token {}",token.unwrap_or("".to_string())),
-                format!("user {}",user.unwrap_or("".to_string())),
-                format!("password {}",password.unwrap_or("".to_string())),
                 format!("id {}",id.unwrap_or("".to_string()))];
             query(params).await;
         }
@@ -141,11 +133,6 @@ async fn reader(arg: CommandReader){
 
 #[tokio::main]
 async fn main() {
-    // login().await;
-    // signup().await;
-    // query().await;
-    // let args : Vec<String> = env::args().collect();
     let args = CommandReader::parse();
-    // println!("{:#?}", args);
     reader(args).await;
 }
